@@ -1,0 +1,127 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile storing candidate details, skills, and ATS scores",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Auth UID of the candidate"
+        },
+        "email": {
+          "type": "string",
+          "description": "Candidate email address"
+        },
+        "fullName": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Candidate full name"
+        },
+        "currentTitle": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Job title"
+        },
+        "location": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Location in Nigeria"
+        },
+        "seniorityLevel": {
+          "type": "string",
+          "enum": ["junior", "mid", "senior", "lead"]
+        },
+        "yearsOfExperience": {
+          "type": "number",
+          "description": "Years of professional tech experience"
+        },
+        "skills": {
+          "type": "array",
+          "description": "List of technical skills"
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Professional summary"
+        },
+        "achievements": {
+          "type": "array",
+          "description": "Key quantifiable achievements"
+        },
+        "healthScore": {
+          "type": "number",
+          "description": "ATS readiness score (0-100)"
+        },
+        "healthFeedback": {
+          "type": "array",
+          "description": "ATS feedback suggestions"
+        },
+        "resumeFilename": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last update"
+        }
+      },
+      "required": ["userId", "fullName", "currentTitle", "skills"]
+    },
+    "UserApplication": {
+      "title": "UserApplication",
+      "description": "Recorded job application sent via Gmail or applied via ATS",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "jobId": {
+          "type": "string"
+        },
+        "jobTitle": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "company": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "salaryRange": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "locationTag": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "status": {
+          "type": "string",
+          "enum": ["authorized_sent", "applied_manually"]
+        },
+        "sentAt": {
+          "type": "string"
+        },
+        "coverLetter": {
+          "type": "string",
+          "maxLength": 5000
+        }
+      },
+      "required": ["id", "jobId", "jobTitle", "company", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Candidate profile document mapped to Auth UID"
+    },
+    "/users/{userId}/applications/{applicationId}": {
+      "schema": {
+        "$ref": "#/entities/UserApplication"
+      },
+      "description": "Application history records for the user"
+    }
+  }
+}

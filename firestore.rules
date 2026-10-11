@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Default Deny Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Security Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidUserProfile(data) {
+      return data.userId is string &&
+             data.userId == request.auth.uid &&
+             data.fullName is string &&
+             data.fullName.size() > 0 &&
+             data.fullName.size() <= 100 &&
+             data.currentTitle is string &&
+             data.currentTitle.size() <= 100 &&
+             data.skills is list &&
+             data.skills.size() <= 50;
+    }
+
+    function isValidApplication(data) {
+      return data.id is string &&
+             data.jobId is string &&
+             data.jobTitle is string &&
+             data.jobTitle.size() <= 200 &&
+             data.company is string &&
+             data.company.size() <= 100 &&
+             data.status in ['authorized_sent', 'applied_manually'];
+    }
+
+    // 2. User Profiles Collection (Strict Owner Isolation)
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      // No blanket list queries across user profiles to protect personal PII
+      allow list: if false;
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUserProfile(request.resource.data);
+      allow update: if isOwner(userId) && isValidId(userId) && isValidUserProfile(request.resource.data);
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      // 3. User Applications Subcollection
+      match /applications/{applicationId} {
+        allow get, list: if isOwner(userId) && isValidId(userId);
+        allow create, update: if isOwner(userId) && isValidId(userId) && isValidApplication(request.resource.data);
+        allow delete: if isOwner(userId) && isValidId(userId);
+      }
+    }
+  }
+}

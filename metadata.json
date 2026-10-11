@@ -1,0 +1,6 @@
+{
+  "name": "AfroRemote",
+  "description": "AI-powered remote job matcher and auto-applier for Nigerian professionals to discover worldwide remote opportunities, tailor cover letters, and dispatch verified applications.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

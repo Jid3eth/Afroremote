@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AfroRemote — AI Remote Job Matcher & Auto-Applier for Nigerian Professionals</title>
+    <meta name="description" content="AI-powered remote job matcher and auto-applier for Nigerian professionals to discover worldwide remote opportunities, tailor cover letters, and dispatch verified applications." />
+    <meta property="og:title" content="AfroRemote — AI Remote Job Matcher & Auto-Applier for Nigerian Professionals" />
+    <meta property="og:description" content="AI-powered remote job matcher and auto-applier for Nigerian professionals to discover worldwide remote opportunities, tailor cover letters, and dispatch verified applications." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script>
+      (function() {
+        // Defensive protection against Web3 browser extensions (e.g. Phantom, MetaMask, evmAsk)
+        // colliding when injecting window.ethereum with Object.defineProperty
+        try {
+          var _ethVal = undefined;
+          var origDefineProperty = Object.defineProperty;
+          Object.defineProperty = function(obj, prop, descriptor) {
+            if (obj === window && prop === 'ethereum') {
+              try {
+                if (descriptor && typeof descriptor === 'object') {
+                  descriptor.configurable = true;
+                }
+                return origDefineProperty.call(Object, obj, prop, descriptor);
+              } catch (e) {
+                try {
+                  if (descriptor && 'value' in descriptor) {
+                    window.ethereum = descriptor.value;
+                  }
+                } catch (_) {}
+                return obj;
+              }
+            }
+            return origDefineProperty.apply(Object, arguments);
+          };
+
+          if (!('ethereum' in window)) {
+            try {
+              origDefineProperty.call(Object, window, 'ethereum', {
+                get: function() { return _ethVal; },
+                set: function(v) { _ethVal = v; },
+                configurable: true,
+                enumerable: true,
+              });
+            } catch (_) {}
+          }
+        } catch (_) {}
+
+        // Suppress unhandled extension injection exceptions from crashing the app
+        window.addEventListener('error', function(event) {
+          if (
+            (event.message && (
+              event.message.includes('Cannot redefine property: ethereum') ||
+              event.message.includes('ethereum')
+            )) ||
+            (event.filename && event.filename.includes('chrome-extension://')) ||
+            (event.error && event.error.stack && event.error.stack.includes('chrome-extension://'))
+          ) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            return true;
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(event) {
+          if (
+            event.reason &&
+            event.reason.message &&
+            (event.reason.message.includes('Cannot redefine property: ethereum') ||
+             event.reason.message.includes('chrome-extension://'))
+          ) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          }
+        });
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
