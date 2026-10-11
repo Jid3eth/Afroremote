@@ -28,7 +28,7 @@ app.get('/api/jobs', (req, res) => {
       jobs,
     });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeLogOutput(err.message || 'Error fetching jobs') });
   }
 });
 
@@ -38,7 +38,7 @@ app.post('/api/jobs/refresh', async (req, res) => {
     const result = await store.refreshJobsFromLiveFeeds();
     res.json({ success: true, ...result });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeLogOutput(err.message || 'Error refreshing jobs') });
   }
 });
 
@@ -48,7 +48,7 @@ app.get('/api/profile', (req, res) => {
     const profile = store.getProfile();
     res.json({ success: true, profile });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeLogOutput(err.message || 'Error fetching profile') });
   }
 });
 
@@ -177,8 +177,8 @@ ${achievementsArray.map((a: string) => `- ${a}`).join('\n')}
     const matches = store.getMatches();
     res.json({ success: true, profile: updated, matches });
   } catch (err: any) {
-    console.error('Error saving profile:', err);
-    res.status(500).json({ success: false, error: err.message });
+    console.error('Error saving profile:', sanitizeLogOutput(err.message || ''));
+    res.status(500).json({ success: false, error: sanitizeLogOutput(err.message || 'Failed to save profile') });
   }
 });
 
@@ -189,7 +189,7 @@ app.post('/api/profile/load-sample', async (req, res) => {
     const matches = store.getMatches();
     res.json({ success: true, profile, matches });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeLogOutput(err.message || 'Failed to load profile') });
   }
 });
 
@@ -199,7 +199,7 @@ app.get('/api/matches', (req, res) => {
     const matches = store.getMatches();
     res.json({ success: true, matches });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeLogOutput(err.message || 'Failed to get matches') });
   }
 });
 
@@ -241,7 +241,7 @@ app.post('/api/matches/status', (req, res) => {
 
     res.json({ success: true, match: updated });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeLogOutput(err.message || 'Failed to update match status') });
   }
 });
 
@@ -271,7 +271,7 @@ app.post('/api/digest/generate', (req, res) => {
 
     res.json({ success: true, digest });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeLogOutput(err.message || 'Failed to generate digest') });
   }
 });
 
@@ -296,7 +296,7 @@ app.get('/api/ai-training-jobs', (req, res) => {
       jobs,
     });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeLogOutput(err.message || 'Failed to fetch AI training jobs') });
   }
 });
 
@@ -353,7 +353,7 @@ app.get('/api/check-nigeria-availability', (req, res) => {
       recommendations,
     });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeLogOutput(err.message || 'Failed to check availability') });
   }
 });
 
@@ -366,7 +366,7 @@ app.get('/api/ai-training-jobs/:id', (req, res) => {
     }
     res.json({ success: true, job });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeLogOutput(err.message || 'Failed to get job detail') });
   }
 });
 
