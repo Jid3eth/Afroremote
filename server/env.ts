@@ -38,24 +38,38 @@ function parseEnv(): AppEnvConfig {
 export const ENV_CONFIG = parseEnv();
 
 /**
- * Masks a secret string safely for operational diagnostic logs
+ * Masks a secret string safely - zero characters or lengths are ever exposed
  */
 export function maskSecret(secret?: string): string {
-  if (!secret) return '[NOT CONFIGURED]';
-  if (secret.length <= 8) return '********';
-  return `${secret.slice(0, 4)}...${secret.slice(-4)} (length: ${secret.length})`;
+  if (!secret || secret.trim().length === 0) return '[NOT CONFIGURED]';
+  return '[PROTECTED & HIDDEN]';
+}
+
+/**
+ * Sanitizes strings (such as error messages or logs) to prevent secret leaks
+ */
+export function sanitizeLogOutput(text: string): string {
+  if (!text) return '';
+  let sanitized = text;
+  if (ENV_CONFIG.GEMINI_API_KEY && ENV_CONFIG.GEMINI_API_KEY.trim().length > 0) {
+    sanitized = sanitized.split(ENV_CONFIG.GEMINI_API_KEY).join('[REDACTED_SECRET_KEY]');
+  }
+  return sanitized
+    .replace(/key=[a-zA-Z0-9_\-\.]+/gi, 'key=[REDACTED]')
+    .replace(/AIza[a-zA-Z0-9_\-]{20,}/gi, '[REDACTED_KEY]')
+    .replace(/Bearer\s+[a-zA-Z0-9_\-\.]+/gi, 'Bearer [REDACTED_TOKEN]');
 }
 
 /**
  * Validates presence of critical environment variables at server startup
- * Logs diagnostics without leaking raw secret values
+ * Logs diagnostics without leaking raw secret values, character slices, or lengths
  */
 export function validateEnvironmentSecurity(): void {
   const isKeyPresent = Boolean(ENV_CONFIG.GEMINI_API_KEY && ENV_CONFIG.GEMINI_API_KEY.trim().length > 0);
 
   console.log(`[Env Security] Runtime environment: ${ENV_CONFIG.NODE_ENV}`);
   console.log(`[Env Security] Listening port: ${ENV_CONFIG.PORT}`);
-  console.log(`[Env Security] GEMINI_API_KEY: ${isKeyPresent ? `Configured [${maskSecret(ENV_CONFIG.GEMINI_API_KEY)}]` : 'Not set (intelligent fallback active)'}`);
+  console.log(`[Env Security] GEMINI_API_KEY: ${isKeyPresent ? 'Configured [PROTECTED & HIDDEN]' : 'Not set (intelligent fallback active)'}`);
 
   if (ENV_CONFIG.APP_URL) {
     console.log(`[Env Security] APP_URL: ${ENV_CONFIG.APP_URL}`);

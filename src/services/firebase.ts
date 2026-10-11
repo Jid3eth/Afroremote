@@ -41,6 +41,19 @@ async function testConnection() {
 }
 testConnection();
 
+/**
+ * Sanitizes errors and strings in Firebase client operations to prevent any key or token leakage
+ */
+export function sanitizeClientLog(input: unknown): string {
+  if (!input) return '';
+  const text = typeof input === 'string' ? input : input instanceof Error ? input.message : JSON.stringify(input);
+  return text
+    .replace(/key=[a-zA-Z0-9_\-\.]+/gi, 'key=[REDACTED]')
+    .replace(/AIza[a-zA-Z0-9_\-]{20,}/gi, '[REDACTED_KEY]')
+    .replace(/Bearer\s+[a-zA-Z0-9_\-\.]+/gi, 'Bearer [REDACTED_TOKEN]')
+    .replace(/access_token=[a-zA-Z0-9_\-\.]+/gi, 'access_token=[REDACTED]');
+}
+
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',
@@ -68,8 +81,10 @@ export interface FirestoreErrorInfo {
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const rawErrorMessage = error instanceof Error ? error.message : String(error);
+  const sanitizedMessage = sanitizeClientLog(rawErrorMessage);
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
+    error: sanitizedMessage,
     authInfo: {
       userId: auth.currentUser?.uid,
       email: auth.currentUser?.email,
@@ -85,8 +100,8 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     operationType,
     path,
   };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+  console.error('Firestore Error:', sanitizedMessage);
+  throw new Error(sanitizedMessage);
 }
 
 const provider = new GoogleAuthProvider();
@@ -119,8 +134,8 @@ export const googleSignIn = async (): Promise<{ user: User; accessToken: string 
     cachedAccessToken = credential?.accessToken || null;
     return { user: result.user, accessToken: cachedAccessToken };
   } catch (error: any) {
-    console.error('Google Sign-in Error:', error);
-    throw error;
+    console.error('Google Sign-in Error:', sanitizeClientLog(error?.message || error));
+    throw new Error(sanitizeClientLog(error?.message || 'Google sign-in encountered an issue'));
   } finally {
     isSigningIn = false;
   }
@@ -138,8 +153,8 @@ export const emailSignUp = async (
     }
     return cred.user;
   } catch (error: any) {
-    console.error('Email sign up failed:', error);
-    throw error;
+    console.error('Email sign up failed:', sanitizeClientLog(error?.message || error));
+    throw new Error(sanitizeClientLog(error?.message || 'Email sign up failed'));
   }
 };
 
@@ -148,8 +163,8 @@ export const emailSignIn = async (email: string, pass: string): Promise<User> =>
     const cred = await signInWithEmailAndPassword(auth, email, pass);
     return cred.user;
   } catch (error: any) {
-    console.error('Email sign in failed:', error);
-    throw error;
+    console.error('Email sign in failed:', sanitizeClientLog(error?.message || error));
+    throw new Error(sanitizeClientLog(error?.message || 'Email sign in failed'));
   }
 };
 
@@ -374,7 +389,7 @@ export async function sendGmailApplication({
     const data = await res.json();
     return { success: true, messageId: data.id };
   } catch (err: any) {
-    console.error('Error sending application via Gmail API:', err);
-    return { success: false, error: err.message || 'Failed to send email' };
+    console.error('Error sending application via Gmail API:', sanitizeClientLog(err?.message || err));
+    return { success: false, error: sanitizeClientLog(err?.message || 'Failed to send email') };
   }
 }

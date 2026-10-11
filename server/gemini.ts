@@ -1,5 +1,6 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import { ApplicationGuide, CandidateProfile, Job } from '../src/types/index.js';
+import { sanitizeLogOutput } from './env.js';
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
@@ -111,7 +112,7 @@ export async function parseResumeWithGemini(
       ],
     };
   } catch (err: any) {
-    console.error('Gemini resume parse fallback:', err.message);
+    console.error('Gemini resume parse fallback:', sanitizeLogOutput(err.message));
     // Graceful fallback profile
     return {
       full_name: 'Nigerian Tech Specialist',
@@ -151,7 +152,7 @@ export async function generateEmbeddingVector(text: string): Promise<number[]> {
       return embeddingObj.values;
     }
   } catch (err) {
-    console.warn('Embed content fallback notice:', (err as Error).message);
+    console.warn('Embed content fallback notice:', sanitizeLogOutput((err as Error).message));
   }
 
   // Robust deterministic semantic vectorizer fallback for 64 dimensions
@@ -302,7 +303,7 @@ INSTRUCTIONS:
       application_guide: data.application_guide,
     };
   } catch (err: any) {
-    console.error('Error generating guide with Gemini:', err.message);
+    console.error('Error generating guide with Gemini:', sanitizeLogOutput(err.message));
     // Intelligent fallback
     return {
       cover_letter: `Dear ${job.company} Hiring Team,\n\nI am thrilled to apply for the ${job.title} role. With ${profile.years_of_experience}+ years architecting high-availability systems, my background directly matches your requirements.\n\nAt my recent engagement, I ${profile.achievements[0] || 'engineered high-throughput microservices reducing latency by 40%'}. Additionally, I ${profile.achievements[1] || 'led asynchronous sprint cadences across multiple timezones'}.\n\nOperating from West Africa Time (WAT / UTC+1), I maintain 5+ hours of synchronous daily overlap with European and US East Coast teams, supported by dual fiber connections and uninterrupted solar inverter power. I thrive in async-first environments that value clear documentation and high velocity.\n\nI look forward to discussing how my experience can contribute to ${job.company}.\n\nSincerely,\n${profile.full_name}`,

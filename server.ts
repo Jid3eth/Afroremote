@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { store } from './server/store.js';
 import { parseResumeWithGemini } from './server/gemini.js';
 import { searchAITrainingJobs, AI_TRAINING_JOBS } from './server/aiTrainingData.js';
-import { ENV_CONFIG, validateEnvironmentSecurity } from './server/env.js';
+import { ENV_CONFIG, validateEnvironmentSecurity, sanitizeLogOutput } from './server/env.js';
 
 // Perform startup environment validation & logging without secret leaks
 validateEnvironmentSecurity();
@@ -82,8 +82,8 @@ app.post('/api/resume/upload', async (req, res) => {
       matches,
     });
   } catch (err: any) {
-    console.error('Error parsing resume:', err);
-    res.status(500).json({ success: false, error: err.message });
+    console.error('Error parsing resume:', sanitizeLogOutput(err.message || ''));
+    res.status(500).json({ success: false, error: sanitizeLogOutput(err.message || 'Resume parsing failed') });
   }
 });
 
@@ -221,8 +221,8 @@ app.post('/api/jobs/generate-guide', async (req, res) => {
       match,
     });
   } catch (err: any) {
-    console.error('Error generating guide:', err);
-    res.status(500).json({ success: false, error: err.message });
+    console.error('Error generating guide:', sanitizeLogOutput(err.message || ''));
+    res.status(500).json({ success: false, error: sanitizeLogOutput(err.message || 'Failed to generate guide') });
   }
 });
 

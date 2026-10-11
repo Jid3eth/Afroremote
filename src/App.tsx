@@ -20,6 +20,7 @@ import {
   saveUserProfileToFirestore,
   getUserProfileFromFirestore,
   recordApplicationToFirestore,
+  sanitizeClientLog,
 } from './services/firebase.js';
 import { Header } from './components/Header.tsx';
 import { JobCard } from './components/JobCard.tsx';
@@ -95,8 +96,8 @@ export default function App() {
             await saveUserProfileToFirestore(user.uid, profile);
             showToast(`Profile recorded securely in Firestore.`);
           }
-        } catch (err) {
-          console.warn('Firestore sync note:', err);
+        } catch (err: any) {
+          console.warn('Firestore sync note:', sanitizeClientLog(err?.message || err));
         }
       },
       () => {
@@ -130,8 +131,8 @@ export default function App() {
           const matchesData = await matchesRes.json();
           if (Array.isArray(matchesData.matches)) setMatches(matchesData.matches);
         }
-      } catch (err) {
-        console.error('Failed to load initial data:', err);
+      } catch (err: any) {
+        console.error('Failed to load initial data:', sanitizeClientLog(err?.message || err));
       } finally {
         setIsLoading(false);
       }
@@ -153,13 +154,13 @@ export default function App() {
         if (profile) {
           try {
             await saveUserProfileToFirestore(res.user.uid, profile);
-          } catch (e) {
-            console.warn(e);
+          } catch (e: any) {
+            console.warn(sanitizeClientLog(e?.message || e));
           }
         }
       }
     } catch (err: any) {
-      console.error('Sign-in failed:', err);
+      console.error('Sign-in failed:', sanitizeClientLog(err?.message || err));
       showToast(err.message || 'Could not complete Google Sign-In');
     }
   };
@@ -172,7 +173,7 @@ export default function App() {
       setIsGmailConnected(false);
       showToast('Signed out.');
     } catch (err: any) {
-      console.error('Logout error:', err);
+      console.error('Logout error:', sanitizeClientLog(err?.message || err));
     }
   };
 
@@ -192,8 +193,8 @@ export default function App() {
     if (authUser) {
       try {
         await saveUserProfileToFirestore(authUser.uid, data.profile);
-      } catch (err) {
-        console.warn('Firestore profile save warning:', err);
+      } catch (err: any) {
+        console.warn('Firestore profile save warning:', sanitizeClientLog(err?.message || err));
       }
     }
 
@@ -239,8 +240,8 @@ export default function App() {
     if (authUser) {
       try {
         await saveUserProfileToFirestore(authUser.uid, data.profile);
-      } catch (err) {
-        console.warn('Firestore upload profile sync warning:', err);
+      } catch (err: any) {
+        console.warn('Firestore upload profile sync warning:', sanitizeClientLog(err?.message || err));
       }
     }
 
@@ -263,8 +264,8 @@ export default function App() {
         }
         return data.match;
       }
-    } catch (err) {
-      console.error('Error generating guide:', err);
+    } catch (err: any) {
+      console.error('Error generating guide:', sanitizeClientLog(err?.message || err));
     }
     return undefined;
   };
@@ -298,13 +299,13 @@ export default function App() {
               sentAt: sentAt || new Date().toISOString(),
               coverLetter: data.match.generated_cover_letter,
             });
-          } catch (fireErr) {
-            console.warn('Firestore application recording note:', fireErr);
+          } catch (fireErr: any) {
+            console.warn('Firestore application recording note:', sanitizeClientLog(fireErr?.message || fireErr));
           }
         }
       }
-    } catch (err) {
-      console.error('Error updating match status:', err);
+    } catch (err: any) {
+      console.error('Error updating match status:', sanitizeClientLog(err?.message || err));
     }
   };
 
@@ -315,8 +316,8 @@ export default function App() {
       try {
         await saveUserProfileToFirestore(user.uid, profile);
         showToast(isNewUser ? 'Account created! Profile saved to Firestore.' : 'Signed in! Profile synced.');
-      } catch (e) {
-        console.warn('Firestore profile save note:', e);
+      } catch (e: any) {
+        console.warn('Firestore profile save note:', sanitizeClientLog(e?.message || e));
       }
     }
   };
